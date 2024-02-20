@@ -3,6 +3,7 @@ import bodyParser from "body-parser";
 
 const app = express();
 const port = 4000;
+const today = new Date()
 
 // In-memory data store
 let posts = [
@@ -34,21 +35,63 @@ let posts = [
 
 let lastId = 3;
 
-// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"))
 
 //Write your code here//
 
-//CHALLENGE 1: GET All posts
+app.get("/", (req, res) => {
+  res.json(posts)
+})
 
-//CHALLENGE 2: GET a specific post by id
+app.get("/:id", (req, res) => {
+  const id = parseInt(req.params.id)
+  const post = posts.find((post) => post.id === id)
+  res.json(post)
+})
 
-//CHALLENGE 3: POST a new post
-
+app.post("/posts", (req, res) => {
+  const newPost = {
+    id: posts.length+1,
+    title: req.body.title,
+    content: req.body.content,
+    author: req.body.author,
+    date: today
+  }
+  posts.push(newPost)
+  res.json(newPost)
+})
 //CHALLENGE 4: PATCH a post when you just want to update one parameter
+app.patch("/posts/:id", (req, res) => {
+  const  id = parseInt(req.params.id)
+  const currentPost = posts.find((post) => {
+    post.id === id
+  })
 
-//CHALLENGE 5: DELETE a specific post by providing the post id.
+  const postIndex = posts.findIndex((post) => {
+    post.id === id
+  })
+
+  const patchPost = {
+    id: id,
+    title: req.body.title || currentPost.title,
+    content: req.body.content || currentPost.content,
+    author: req.body.author || currentPost.author,
+    date: today
+  }
+
+  posts[postIndex] = patchPost
+  res.json(patchPost)
+})
+
+app.delete("/posts/:id", (req, res) => {
+  const id = parseInt(req.params.id)
+  const postIndex = posts.findIndex((post) => post.id === id)
+
+  posts.splice(postIndex, 1)
+  res.json({message: "Post Deleted"})
+})
 
 app.listen(port, () => {
   console.log(`API is running at http://localhost:${port}`);
